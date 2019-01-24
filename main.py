@@ -1,6 +1,7 @@
 from __future__ import print_function
 import datetime
 from dateutil import parser
+from pprint import pprint
 import pytz
 
 from utils.calendar_service import get_google_cal_service
@@ -44,7 +45,7 @@ def get_end_date():
 
 def get_employee_data(service):
     SAMPLE_SPREADSHEET_ID = '1P50eMsvS8alWmd7Xdd3lxbOTp1mu7rg8SkE8NbIkD3U'
-    SAMPLE_RANGE_NAME = 'Rate!A2:B9'
+    SAMPLE_RANGE_NAME = 'Rate!A2:B100'
 
     sheet = service.spreadsheets()
     result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
@@ -85,6 +86,9 @@ def calculate_cost(event, duration):
     cost = 0
     for a in event['attendees']:
         key = a['email']
+        if key == 'trinternal@taskrabbit.com':
+            cost = EMPLOYEES[key] * duration * 150;
+            break
         if key in EMPLOYEES:
             cost += EMPLOYEES[key] * duration
         else:

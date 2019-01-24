@@ -18,12 +18,13 @@ def main():
 
 
 def get_events(service):
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-    start_date = get_start_date()
-    end_date = get_end_date()
-    events_result = service.events().list(calendarId='primary', timeMin=start_date,
-                                        timeMax=end_date, singleEvents=True,
-                                        orderBy='startTime').execute()
+    events_result = service.events().list(
+        calendarId='primary', 
+        timeMin=get_start_date(),
+        timeMax=get_end_date(), 
+        singleEvents=True,
+        orderBy='startTime'
+    ).execute()
     events = events_result.get('items', [])
     return events
 

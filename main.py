@@ -1,5 +1,6 @@
 from __future__ import print_function
 import datetime
+import pytz
 
 from utils.calendar_service import get_google_cal_service
 from utils.sheets_service import get_sheets_service
@@ -18,12 +19,25 @@ def main():
 
 def get_events(service):
     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-    print('Getting the upcoming 10 events')
-    events_result = service.events().list(calendarId='primary', timeMin=now,
-                                        maxResults=10, singleEvents=True,
+    start_date = get_start_date()
+    end_date = get_end_date()
+    events_result = service.events().list(calendarId='primary', timeMin=start_date,
+                                        timeMax=end_date, singleEvents=True,
                                         orderBy='startTime').execute()
     events = events_result.get('items', [])
     return events
+
+
+def get_start_date():
+    d = datetime.datetime(2019, 1, 1, 1, 0).isoformat() + 'Z'
+    print("start date is %s" % d)
+    return d
+
+
+def get_end_date():
+    d = datetime.datetime(2019, 1, 30, 1, 0).isoformat() + 'Z'
+    print("end date is %s" % d)
+    return d
 
 
 def get_employee_data(service):
@@ -43,7 +57,7 @@ def get_employee_data(service):
 
 
 def hourly_from_annual(salary):
-    return int(salary) / 260 / 8
+    return float(salary) / 260 / 8
 
 
 def display_events(events):
@@ -52,14 +66,12 @@ def display_events(events):
     if not events:
         print('No upcoming events found.')
     for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
         if 'attendees' not in event:
             continue
         cost = calculate_cost(event['attendees'])
         total_cost += cost
-
         print("%s: %d" % (event['summary'], cost))
-        
+
     print("Total cost: %d" % total_cost)
 
 

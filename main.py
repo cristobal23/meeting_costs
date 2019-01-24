@@ -1,5 +1,6 @@
 from __future__ import print_function
 import datetime
+from dateutil import parser
 import pytz
 
 from utils.calendar_service import get_google_cal_service
@@ -69,22 +70,35 @@ def display_events(events):
     for event in events:
         if 'attendees' not in event:
             continue
-        cost = calculate_cost(event['attendees'])
+        duration = calculate_duration(event)
+        cost = calculate_cost(event, duration)
+
         total_cost += cost
-        print("%s: %d" % (event['summary'], cost))
+        print("%s" % (event['summary']))
+        print("\tcost: %d" % cost)
+        print("\tduration: %.2f" % duration)
 
     print("Total cost: %d" % total_cost)
 
 
-def calculate_cost(attendees):
+def calculate_cost(event, duration):
     cost = 0
-    for a in attendees:
+    for a in event['attendees']:
         key = a['email']
         if key in EMPLOYEES:
-            cost += EMPLOYEES[key]
+            cost += EMPLOYEES[key] * duration
         else:
-            cost += DEFAULT_HOURLY
+            cost += DEFAULT_HOURLY * duration
     return cost
+
+
+def calculate_duration(event):
+    if 'start' not in event or 'dateTime' not in event['start']:
+        return 0
+        
+    start = parser.parse(event['start']['dateTime'])
+    end = parser.parse(event['end']['dateTime'])
+    return (end - start).total_seconds() / 3600.0
 
 
 if __name__ == '__main__':
